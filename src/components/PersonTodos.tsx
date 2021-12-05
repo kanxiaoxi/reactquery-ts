@@ -22,34 +22,36 @@ const PersonTodos = () => {
     "person",
     () => fetchData<IPerson[]>("person"),
     {
-      enabled,
+      // enabled,
     }
   );
 
   const {
     isSuccess: todoSuccess,
   }: UseQueryResult<ITodo, Error> = useQuery<ITodo, Error>(
-    "todo",
-    () => fetchData<ITodo>("todo"),
+    "todos",
+    () => fetchData<ITodo>("todos"),
     {
       enabled,
     }
   );
 
   // dynamic parallel queries
-  const todosQueries:UseQueryResult<ITodo>[] = useQueries(
+  const todosQueries: UseQueryResult<ITodo>[] = useQueries(
     ["1", "2", "3", "4", "5"].map((id) => {
       return {
-        queryKey: ["todo", { todoId: id }],
+        queryKey: ["todos", { todoId: id }],
         queryFn: () => fetchData<ITodo>(`todos/${id}`),
       };
     })
   );
-  console.log("todosQueries", todosQueries);
+  // console.log("todosQueries", todosQueries);
 
+  // 禁掉后续的查询操作
   if (personSuccess && todoSuccess && enabled) {
     setEnabled(false);
   }
+
   if (isLoading) {
     return (
       <div>
@@ -93,19 +95,19 @@ const PersonTodos = () => {
         使todo的特定id查询无效
       </button>
       {
-        personData?.map(person=>{
-          return <>
-          <br />
-          <span>ID：{person?.id}</span>
-          <span>名字：{person?.name}</span>
-          <span>年龄：{person?.age}</span>
-          <br />
-        </>
+       personSuccess && personData?.map(person => {
+          return <div key={person.id}>
+            <br />
+            <span>ID：{person?.id}</span>
+            <span>名字：{person?.name}</span>
+            <span>年龄：{person?.age}</span>
+            <br />
+          </div>
         })
       }
       {
-        todosQueries?.map(todo=>{
-          return <div>待办事项 - {todo.data?.message}</div>
+        todosQueries?.map(todo => {
+          return todo.isSuccess &&  <div key={todo.data?.id}>待办事项 - {todo.data?.message}</div>
         })
       }
     </div>
